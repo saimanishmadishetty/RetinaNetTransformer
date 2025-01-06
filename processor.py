@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 from vipas import logger
-from model_components import StockPredictionModel
+from utils.model_components import StockPredictionModel
 logger_client = logger.LoggerClient(__name__)
 
 # Load data and prepare encoders/mappings during module import
