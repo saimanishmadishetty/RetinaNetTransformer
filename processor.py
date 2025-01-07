@@ -1,72 +1,60 @@
 import numpy as np
-import pandas as pd
-from sklearn.preprocessing import LabelEncoder
-from vipas import logger
-from .utils.model_components import StockPredictionModel
-logger_client = logger.LoggerClient(__name__)
-from pathlib import Path
 import json
+from sklearn.preprocessing import LabelEncoder
 
-# Path to your JSON file (relative to the package root)
+# Load user encoder classes
+user_encoder = LabelEncoder()
+user_encoder.classes_ = np.load("utils/user_encoder_classes.npy")
 
-# Load data and prepare encoders/mappings during module import
-user_encoder, movie_encoder, movie_id_to_title = None, None, None
+# Load movie encoder classes
+movie_encoder = LabelEncoder()
+movie_encoder.classes_ = np.load("utils/movie_encoder_classes.npy")
 
-logger_client.info("Was able to load class")
+# Load movie ID to title mapping
+with open("utils/movie_id_to_title.json", "r") as f:
+    movie_id_to_title = json.load(f)
 
-
-# Path to your JSON file
-json_file_path = Path(__file__).parent / "utils/movie_id_to_title_first_100.json"
-
-# Load the JSON data
-try:
-    with open(json_file_path, "r") as file:
-        data = json.load(file)
-        logger_client.info("JSON data loaded successfully!")
-        # Access the data as a Python dictionary
-        logger_client.info(data)
-except FileNotFoundError:
-    logger_client.info(f"Error: The file '{json_file_path}' was not found.")
-except json.JSONDecodeError as e:
-    logger_client.info(f"Error decoding JSON: {e}")
-
-
-# Pre-process Function: Generate Inputs for Model
 def pre_process(user_id):
+    """
+    Pre-process the input user_id to prepare it for model inference.
+    Args:
+        user_id (int): The user ID to be processed.
+    Returns:
+        tuple: Processed user vector and movie vector.
+    """
     try:
-        if user_encoder is None or movie_encoder is None:
-            raise Exception("Encoders not initialized. Failed to load dataset.")
-
+        # Check if user_id exists in the dataset
+        if user_id not in user_encoder.classes_:
+            raise ValueError(f"User ID {user_id} not found in the dataset.")
+        
         # Encode the user ID
-        encoded_user_id = user_encoder.transform([user_id])[0]
+        user_vector = np.full((len(movie_encoder.classes_),), user_encoder.transform([user_id])[0])
         
-        # Generate input arrays
-        user_input = np.full((len(movie_encoder.classes_),), encoded_user_id)
-        movie_ids = np.arange(len(movie_encoder.classes_))  # All movie IDs encoded
+        # Prepare movie vector for all movies
+        movie_vector = np.arange(len(movie_encoder.classes_))
         
-        return user_input, movie_ids
+        return user_vector, movie_vector
     except Exception as e:
-        logger_client.error(f"Error in pre_process: {e}")
-        return None, None
+        raise ValueError(f"Error in preprocessing: {e}")
 
-
-# Post-process Function: Interpret Model Output
-def post_process(predictions):
+def post_process(model_output):
+    """
+    Post-process the model output to generate movie recommendations.
+    Args:
+        model_output (np.ndarray): Model predictions for all movies for a user.
+    Returns:
+        list: Top 10 recommended movie titles.
+    """
     try:
-        if movie_id_to_title is None:
-            raise Exception("Movie ID-to-title mapping not initialized.")
-
-        # Combine predictions with movie IDs
-        movie_ids = movie_encoder.inverse_transform(np.arange(len(predictions)))
-        movie_predictions = list(zip(movie_ids, predictions.flatten()))
-
-        # Sort movies by predicted ratings in descending order
-        movie_predictions = sorted(movie_predictions, key=lambda x: x[1], reverse=True)
-
-        # Map movie IDs to titles and return with ratings
-        top_movies = [(movie_id_to_title.get(mid, "Unknown Movie"), rating) for mid, rating in movie_predictions]
-
-        return top_movies
+        # Get the top 10 movie indices with highest predictions
+        top_indices = np.argsort(model_output.flatten())[::-1][:10]
+        
+        # Map movie indices back to original IDs
+        recommended_movie_ids = movie_encoder.inverse_transform(top_indices)
+        
+        # Map IDs to titles
+        recommended_movies = [movie_id_to_title.get(mid, "Unknown Movie") for mid in recommended_movie_ids]
+        
+        return recommended_movies
     except Exception as e:
-        logger_client.error(f"Error in post_process: {e}")
-        return []
+        raise ValueError(f"Error in postprocessing: {e}")
