@@ -13,7 +13,6 @@ movie_encoder.classes_ = np.load("./utils/movie_encoder_classes.npy")
 # Load movie ID to title mapping
 with open("./utils/movie_id_to_title.json", "r") as f:
     movie_id_to_title = json.load(f)
-    print("loaded successfully")
 
 def pre_process(user_id):
     """
