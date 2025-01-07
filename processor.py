@@ -4,15 +4,16 @@ from sklearn.preprocessing import LabelEncoder
 
 # Load user encoder classes
 user_encoder = LabelEncoder()
-user_encoder.classes_ = np.load("utils/user_encoder_classes.npy")
+user_encoder.classes_ = np.load("./utils/user_encoder_classes.npy")
 
 # Load movie encoder classes
 movie_encoder = LabelEncoder()
-movie_encoder.classes_ = np.load("utils/movie_encoder_classes.npy")
+movie_encoder.classes_ = np.load("./utils/movie_encoder_classes.npy")
 
 # Load movie ID to title mapping
-with open("utils/movie_id_to_title.json", "r") as f:
+with open("./utils/movie_id_to_title.json", "r") as f:
     movie_id_to_title = json.load(f)
+    print("loaded successfully")
 
 def pre_process(user_id):
     """
