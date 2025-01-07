@@ -2,18 +2,21 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 from vipas import logger
-from utils.model_components import StockPredictionModel
+from .utils.model_components import StockPredictionModel
 logger_client = logger.LoggerClient(__name__)
+from pathlib import Path
+import json
+
+# Path to your JSON file (relative to the package root)
 
 # Load data and prepare encoders/mappings during module import
 user_encoder, movie_encoder, movie_id_to_title = None, None, None
 
 logger_client.info("Was able to load class")
 
-import json
 
 # Path to your JSON file
-json_file_path = "movie_id_to_title_first_100.json"
+json_file_path = Path(__file__).parent / "utils/movie_id_to_title_first_100.json"
 
 # Load the JSON data
 try:
