@@ -3,6 +3,19 @@ from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
 import base64
 
+# Import sentence-transformers for working with pre-trained transformers for embeddings
+from sentence_transformers import SentenceTransformer
+
+# Import pdfplumber for extracting text, tables, and metadata from PDF files
+import pdfplumber
+
+# Import python-docx for creating, reading, and editing Microsoft Word (.docx) files
+from docx import Document
+
+# Import faiss for similarity search and clustering of dense vectors
+import faiss
+
+
 def pre_process(input):
     image_data = base64.b64decode(input)
     # Open the image and convert to RGB
