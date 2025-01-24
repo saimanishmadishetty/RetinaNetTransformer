@@ -2,7 +2,7 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
 import base64
-
+import os
 # Import sentence-transformers for working with pre-trained transformers for embeddings
 from sentence_transformers import SentenceTransformer
 
